@@ -7,7 +7,7 @@ from zpulse import (
     ZPulseInput,
     ZPulseResult,
     compute_zpulse,
-    log_sheet_fallback,
+    logsheetfallback,
     safe_now,
 )
 
@@ -40,7 +40,7 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
                 "idempotency_key": idempotency_key,
             }
 
-        fallback_event = log_sheet_fallback(
+        fallback_event = logsheetfallback(
             idempotency_key=idempotency_key,
             source=source,
             error="sheet_write_failed",
@@ -57,7 +57,7 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
 
     except Exception as e:
         logger.exception(f"zpulse handler failed: {e}")
-        fallback_event = log_sheet_fallback(
+        fallback_event = logsheetfallback(
             idempotency_key=raw_event.get("idempotency_key", "unknown"),
             source=raw_event.get("source", "unknown"),
             error=f"handler_error: {str(e)}",

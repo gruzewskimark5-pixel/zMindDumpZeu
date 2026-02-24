@@ -1,6 +1,6 @@
 from eventbus import handle_zpulse_event
 
-def test_zpulse_event_basic():
+def testzpulseevent_basic():
     event = {
         "event_type": "zpulse_compute",
         "idempotency_key": "test-123",
@@ -18,8 +18,8 @@ def test_zpulse_event_basic():
     assert result["status"] == "success"
     assert "zpulse" in result
     assert "badge" in result
-    print("test_zpulse_event_basic passed!")
+    print("testzpulseevent_basic passed!")
     print(f"Result: {result}")
 
 if __name__ == "__main__":
-    test_zpulse_event_basic()
+    testzpulseevent_basic()

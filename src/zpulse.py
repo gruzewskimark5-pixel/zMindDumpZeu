@@ -87,7 +87,7 @@ def compute_zpulse(input_data: ZPulseInput) -> ZPulseResult:
     )
 
 
-def log_sheet_fallback(
+def logsheetfallback(
     idempotency_key: str,
     source: str,
     error: str,
