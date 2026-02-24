@@ -1,25 +1,28 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID;
-const NEXT_PUBLIC_URL = process.env.NEXT_PUBLIC_URL;
-
-if (!STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not defined');
-}
-
-const stripe = new Stripe(STRIPE_SECRET_KEY);
-
 export async function POST() {
   try {
+    const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+    const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID;
+    const NEXT_PUBLIC_URL = process.env.NEXT_PUBLIC_URL;
+
+    if (!STRIPE_SECRET_KEY) {
+      console.error('[Stripe] Checkout error: STRIPE_SECRET_KEY is not defined');
+      return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+
     if (!STRIPE_PRICE_ID) {
-      throw new Error('STRIPE_PRICE_ID is not defined');
+      console.error('[Stripe] Checkout error: STRIPE_PRICE_ID is not defined');
+      return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 
     if (!NEXT_PUBLIC_URL) {
-      throw new Error('NEXT_PUBLIC_URL is not defined');
+      console.error('[Stripe] Checkout error: NEXT_PUBLIC_URL is not defined');
+      return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
+
+    const stripe = new Stripe(STRIPE_SECRET_KEY);
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
