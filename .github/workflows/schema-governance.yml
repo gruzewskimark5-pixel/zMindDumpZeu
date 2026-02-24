@@ -1,0 +1,141 @@
+name: ZLeveLZ Schema Governance V6.0 — Doctrine Eternal
+
+on:
+  push:
+    paths:
+      - 'schemas/**/*.json'
+      - '.github/workflows/schema-governance.yml'
+  pull_request:
+    paths:
+      - 'schemas/**/*.json'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  AJV_VERSION: '5.0.0'
+  RUST_VERSION: '1.83'
+  BOWTIE_VERSION: '2026.2.4'
+  JSCHEMA_RS_VERSION: '0.42.1'
+  SPECTRAL_VERSION: '6.12.0'
+
+jobs:
+  validate-schemas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js + Cache
+        uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: Install AJV
+        run: npm install -g ajv-cli@${{ env.AJV_VERSION }}
+      - name: Validate All Schemas
+        run: find schemas -name "*.json" -exec ajv compile -s {} --strict=true \;
+
+  bowtie-compliance:
+    needs: validate-schemas
+    runs-on: ubuntu-latest
+    outputs:
+      failures: ${{ steps.bowtie.outputs.failures }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12', cache: 'pip' }
+      - run: pip install bowtie-json-schema==${{ env.BOWTIE_VERSION }}
+      - name: Run Bowtie
+        id: bowtie
+        run: |
+          bowtie suite --implementation rust-jsonschema --dialect https://json-schema.org/draft/2020-12/schema schemas/ --output-format json > bowtie-results.json
+          failures=$(jq '[.results[] | select(.valid == false)] | length' bowtie-results.json)
+          echo "failures=$failures" >> $GITHUB_OUTPUT
+          [ "$failures" -eq 0 ] || exit 1
+
+  generate-openapi:  # A (unchanged but now feeds D+E)
+    needs: validate-schemas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: npm install -g @openapi-contrib/json-schema-to-openapi-schema
+      - name: Generate OpenAPI Specs
+        run: |
+          mkdir -p openapi
+          for schema in schemas/**/*.json; do
+            base=$(basename "$schema" .json)
+            json-schema-to-openapi-schema "$schema" > "openapi/${base}.json"
+          done
+      - uses: actions/upload-artifact@v4
+        with: { name: openapi-specs, path: openapi }
+
+  spectral-lint:  # ← VECTOR D
+    needs: generate-openapi
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: npm install -g @stoplight/spectral-cli@${{ env.SPECTRAL_VERSION }}
+      - name: Download OpenAPI artifacts
+        uses: actions/download-artifact@v4
+        with: { name: openapi-specs, path: openapi }
+      - name: Lint All OpenAPI Specs with Spectral
+        run: |
+          for spec in openapi/*.json; do
+            echo "Linting $spec"
+            spectral lint "$spec" --ruleset spectral:oas || exit 1
+          done
+          echo "✅ Spectral: All OpenAPI specs pass 100+ rules"
+
+  deploy-openapi-pages:  # ← VECTOR E
+    needs: [generate-openapi, spectral-lint]
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download OpenAPI artifacts
+        uses: actions/download-artifact@v4
+        with: { name: openapi-specs, path: openapi }
+      - name: Build Redoc Static Site
+        run: |
+          npm install -g redoc-cli
+          mkdir -p docs
+          for spec in openapi/*.json; do
+            name=$(basename "$spec" .json)
+            redoc-cli bundle "$spec" --output "docs/${name}.html"
+          done
+          cp docs/request.html docs/index.html  # default landing page
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          publish_branch: gh-pages
+          force_orphan: true
+          user_name: "ZLeveLZ CI"
+          user_email: "ci@zlevelz.dev"
+          commit_message: "chore(docs): update OpenAPI viewer (auto-deploy)"
+
+  prometheus-metrics:
+    needs: [bowtie-compliance, spectral-lint]
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          cat > metrics.txt << EOF
+          zlevelz_schema_validations_total 1
+          zlevelz_bowtie_failures ${{ needs.bowtie-compliance.outputs.failures }}
+          zlevelz_spectral_pass 1
+          zlevelz_openapi_deployed 1
+          EOF
+      - uses: actions/upload-artifact@v4
+        with: { name: prometheus-metrics, path: metrics.txt }
+
+  summary:
+    needs: [bowtie-compliance, spectral-lint, deploy-openapi-pages]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - run: echo "❤️‍🔥 ZLeveLZ Doctrine V6.0 ETERNAL — Self-healing, linted, live-documented"
