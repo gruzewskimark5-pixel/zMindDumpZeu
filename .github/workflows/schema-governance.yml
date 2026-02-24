@@ -28,7 +28,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Setup Node.js + Cache
         uses: actions/setup-node@v4
-        with: { node-version: '20', cache: 'npm' }
+        with: { node-version: '20' }
       - name: Install AJV
         run: npm install -g ajv-cli@${{ env.AJV_VERSION }}
       - name: Validate All Schemas
