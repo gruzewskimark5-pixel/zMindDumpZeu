@@ -2,6 +2,14 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
 export async function POST() {
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+  if (!stripeSecretKey) {
+    console.error('[Stripe] Checkout error: Missing STRIPE_SECRET_KEY');
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+
+  const stripe = new Stripe(stripeSecretKey);
+
   try {
     const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
     const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID;
