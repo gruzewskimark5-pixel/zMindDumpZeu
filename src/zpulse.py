@@ -1,17 +1,19 @@
 from dataclasses import dataclass, field
+from typing import Dict, Any, Optional
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any
+
 
 @dataclass
 class ZPulseInput:
     uptime_pct: float
-    signal_score: float
+    signal_score: float          # 0-100 from payload, will be normalized
     detect_ts: datetime
     execute_ts: datetime
     last_update_ts: datetime
     now_ts: Optional[datetime] = None
-    max_latency_ms: int = 5000
-    max_freshness_sec: int = 3600
+    max_latency_ms: float = 5000
+    max_freshness_sec: float = 3600
+
 
 @dataclass
 class ZPulseResult:
@@ -23,43 +25,82 @@ class ZPulseResult:
     freshness_score: float
     meta: Dict[str, Any] = field(default_factory=dict)
 
+
 def safe_now(tz=None) -> datetime:
-    """Returns current UTC datetime."""
     return datetime.now(tz or timezone.utc)
 
+
 def compute_zpulse(input_data: ZPulseInput) -> ZPulseResult:
-    """
-    Mock implementation of compute_zpulse matching the test case expectation.
-    """
-    # The test expects 95.42 for uptime=99.5, signal=92.1.
-    expected_zpulse = 95.42
-    expected_badge = "💎"
+    now = input_data.now_ts or safe_now()
 
-    # Check if inputs match the test case closely (floating point comparison)
-    if abs(input_data.uptime_pct - 99.5) < 0.1 and abs(input_data.signal_score - 92.1) < 0.1:
-        zpulse = expected_zpulse
-        badge = expected_badge
+    # Latency (ms) — clamp negative
+    latency_ms = (input_data.execute_ts - input_data.detect_ts).total_seconds() * 1000.0
+    latency_ms = max(0.0, latency_ms)
+
+    if input_data.max_latency_ms > 0:
+        over = max(0.0, latency_ms - input_data.max_latency_ms)
+        latency_score = max(0.0, 1.0 - (over / input_data.max_latency_ms))
     else:
-        # Fallback simple calculation
-        zpulse = (input_data.uptime_pct + input_data.signal_score) / 2
-        badge = "🟢"
+        latency_score = 1.0 if latency_ms <= 0 else 0.0
 
-    return ZPulseResult(
-        zpulse=zpulse,
-        badge=badge,
-        uptime_score=input_data.uptime_pct,
-        signal_score=input_data.signal_score,
-        latency_score=100.0, # Placeholder
-        freshness_score=100.0, # Placeholder
-        meta={}
+    # Freshness (sec) — clamp negative
+    freshness_sec = (now - input_data.last_update_ts).total_seconds()
+    freshness_sec = max(0.0, freshness_sec)
+
+    if input_data.max_freshness_sec > 0:
+        over = max(0.0, freshness_sec - input_data.max_freshness_sec)
+        freshness_score = max(0.0, 1.0 - (over / input_data.max_freshness_sec))
+    else:
+        freshness_score = 1.0 if freshness_sec <= 0 else 0.0
+
+    uptime_score = max(0.0, min(1.0, input_data.uptime_pct / 100.0))
+    # Signal score is expected to be normalized 0-1 by the caller (parser) or here.
+    # Given the parser snippet "signal_score / 100.0", we assume input_data.signal_score is 0-1.
+    signal_score = max(0.0, min(1.0, input_data.signal_score))
+
+    zpulse_val = (
+        uptime_score * 0.3
+        + signal_score * 0.3
+        + latency_score * 0.2
+        + freshness_score * 0.2
     )
 
-def logsheet_fallback(idempotency_key: str, source: str, error: str, payload: Any) -> Dict[str, Any]:
+    if zpulse_val >= 0.9:
+        badge = "ELITE"
+    elif zpulse_val >= 0.7:
+        badge = "HEALTHY"
+    elif zpulse_val >= 0.5:
+        badge = "DEGRADED"
+    else:
+        badge = "CRITICAL"
+
+    return ZPulseResult(
+        zpulse=round(zpulse_val, 4),
+        badge=badge,
+        uptime_score=round(uptime_score, 4),
+        signal_score=round(signal_score, 4),
+        latency_score=round(latency_score, 4),
+        freshness_score=round(freshness_score, 4),
+        meta={
+            "latency_ms": latency_ms,
+            "freshness_sec": freshness_sec,
+            "computed_at": now.isoformat(),
+        },
+    )
+
+
+def logsheet_fallback(
+    idempotency_key: str,
+    source: str,
+    error: str,
+    payload: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
     return {
-        "event_type": "logsheet_fallback",
+        "event_type": "zpulse_fallback",
         "idempotency_key": idempotency_key,
         "source": source,
-        "error": error,
-        "payload": payload,
-        "timestamp": safe_now().isoformat()
+        "error_type": error,
+        "timestamp": safe_now().isoformat(),
+        "payload": payload or {},
+        "status": "persisted_locally",
     }
