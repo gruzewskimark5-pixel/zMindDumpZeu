@@ -20,6 +20,7 @@ env:
   BOWTIE_VERSION: '2026.2.4'
   JSCHEMA_RS_VERSION: '0.42.1'
   SPECTRAL_VERSION: '6.12.0'
+  JSON_SCHEMA_TO_OPENAPI_VERSION: '3.0.3'
 
 jobs:
   validate-schemas:
@@ -59,13 +60,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
-      - run: npm install -g @openapi-contrib/json-schema-to-openapi-schema
+      - run: npm install -g @openapi-contrib/json-schema-to-openapi-schema@${{ env.JSON_SCHEMA_TO_OPENAPI_VERSION }}
       - name: Generate OpenAPI Specs
         run: |
           mkdir -p openapi
           for schema in schemas/**/*.json; do
             base=$(basename "$schema" .json)
-            json-schema-to-openapi-schema "$schema" > "openapi/${base}.json"
+            json-schema-to-openapi-schema convert "$schema" > "openapi/${base}.json"
           done
       - uses: actions/upload-artifact@v4
         with: { name: openapi-specs, path: openapi }
