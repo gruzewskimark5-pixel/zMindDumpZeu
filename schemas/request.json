@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zlevelz.dev/schemas/request.json",
+  "title": "Request",
+  "description": "Standard request envelope for ZLeveLZ",
+  "type": "object",
+  "properties": {
+    "requestId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "method": {
+      "type": "string",
+      "enum": ["GET", "POST", "PUT", "DELETE", "PATCH"]
+    },
+    "path": {
+      "type": "string"
+    },
+    "body": {
+      "type": "object"
+    },
+    "headers": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  },
+  "required": ["requestId", "method", "path"],
+  "additionalProperties": false
+}
