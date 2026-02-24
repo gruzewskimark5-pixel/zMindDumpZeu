@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  AJV_VERSION: '8.18.0'
+  AJV_VERSION: '5.0.0'
   RUST_VERSION: '1.83'
   BOWTIE_VERSION: '2026.2.4'
   JSCHEMA_RS_VERSION: '0.42.1'
