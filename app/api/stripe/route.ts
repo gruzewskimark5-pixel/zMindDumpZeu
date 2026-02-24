@@ -1,9 +1,19 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
 export async function POST() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    console.error('[Stripe] Missing STRIPE_SECRET_KEY environment variable');
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+
+  if (!process.env.NEXT_PUBLIC_URL) {
+    console.error('[Stripe] Missing NEXT_PUBLIC_URL environment variable');
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
   try {
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -21,6 +31,7 @@ export async function POST() {
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
+    console.error('[Stripe] Checkout error:', error);
     return NextResponse.json({ error: 'Checkout failed' }, { status: 500 });
   }
 }
