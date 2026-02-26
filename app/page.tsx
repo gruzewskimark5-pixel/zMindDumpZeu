@@ -12,8 +12,7 @@ export default function Home() {
     try {
       const res = await fetch('/api/stripe', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priceId: 'price_1Qxxxxxxxxxxxx' }) // we'll replace with real test price after deploy
+        headers: { 'Content-Type': 'application/json' }
       });
 
       if (!res.ok) {
