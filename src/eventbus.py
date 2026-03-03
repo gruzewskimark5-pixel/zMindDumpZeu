@@ -15,6 +15,12 @@ logger = logging.getLogger("zPulse")
 
 
 def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
+    if not isinstance(raw_event, dict):
+        return {
+            "status": "error",
+            "message": "Event must be a dictionary",
+        }
+
     try:
         idempotency_key = raw_event.get("idempotency_key", "unknown")
         source = raw_event.get("source", "unknown")
