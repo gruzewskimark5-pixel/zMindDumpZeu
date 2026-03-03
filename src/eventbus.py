@@ -84,7 +84,7 @@ def parse_zpulse_input(payload: Dict[str, Any]) -> Optional[ZPulseInput]:
             max_latency_ms=float(payload.get("max_latency_ms", 5000)),
             max_freshness_sec=float(payload.get("max_freshness_sec", 3600)),
         )
-    except (KeyError, ValueError, TypeError) as e:
+    except (KeyError, ValueError, TypeError, AttributeError) as e:
         logger.warning(f"Failed to parse ZPulseInput: {payload} - {e}")
         return None
 
