@@ -19,11 +19,11 @@ contract TeeBoxNFT is ERC721, Ownable {
         require(totalSupply < MAX_SUPPLY, "Max supply reached");
         require(msg.value >= mintPrice, "Insufficient funds");
 
-        (bool success, ) = treasury.call{value: msg.value}("");
-        require(success, "Transfer failed");
-
         totalSupply++;
         _safeMint(msg.sender, totalSupply);
+
+        (bool success, ) = treasury.call{value: msg.value}("");
+        require(success, "Transfer failed");
     }
 
     function setMintPrice(uint256 _price) public onlyOwner {
@@ -33,5 +33,12 @@ contract TeeBoxNFT is ERC721, Ownable {
     function setTreasury(address _treasury) public onlyOwner {
         require(_treasury != address(0), "Invalid treasury");
         treasury = _treasury;
+    }
+
+    function withdraw() external onlyOwner {
+        uint256 balance = address(this).balance;
+        require(balance > 0, "No ETH to withdraw");
+        (bool success, ) = treasury.call{value: balance}("");
+        require(success, "Withdraw failed");
     }
 }
