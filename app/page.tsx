@@ -1,37 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { handleSubscribeAction } from './actions';
 
 export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubscribe = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/stripe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      if (!res.ok) {
-        throw new Error('Checkout failed. Please try again.');
-      }
-
-      const { url } = await res.json();
-      if (!url) {
-        throw new Error('No checkout URL returned');
-      }
-
-      window.location.href = url;
-    } catch (err) {
-      console.error('Checkout error:', err);
-      setError('Something went wrong. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const handleSubscribe = () => handleSubscribeAction(setLoading, setError);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-8">
