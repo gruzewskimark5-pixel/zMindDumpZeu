@@ -1,4 +1,30 @@
 from eventbus import handle_zpulse_event, parse_zpulse_input
+from zpulse import logsheetfallback
+
+def test_logsheetfallback():
+    print("Running test_logsheetfallback...")
+
+    # Test case 1: Happy path with all parameters
+    idempotency_key = "test-key-123"
+    source = "test-source"
+    error = "test-error"
+    payload = {"data": "test-data"}
+
+    result = logsheetfallback(idempotency_key, source, error, payload)
+
+    assert result["event_type"] == "zpulse_fallback"
+    assert result["idempotency_key"] == idempotency_key
+    assert result["source"] == source
+    assert result["error_type"] == error
+    assert result["payload"] == payload
+    assert result["status"] == "persisted_locally"
+    assert "timestamp" in result
+
+    # Test case 2: payload is None
+    result_no_payload = logsheetfallback(idempotency_key, source, error, None)
+    assert result_no_payload["payload"] == {}
+
+    print("test_logsheetfallback passed!")
 
 def testzpulseevent_basic():
     event = {
@@ -72,6 +98,7 @@ def test_handle_zpulse_event_with_invalid_payload():
     print("test_handle_zpulse_event_with_invalid_payload passed!")
 
 if __name__ == "__main__":
+    test_logsheetfallback()
     testzpulseevent_basic()
     test_parse_zpulse_input_failures()
     test_handle_zpulse_event_with_invalid_payload()
