@@ -1,0 +1,21 @@
+[project]
+name = "jules-sdk"
+version = "0.1.0"
+description = "Typed Python client for the Jules REST API"
+authors = [
+    { name = "Mark", email = "mark@example.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.31.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "requests-mock",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
