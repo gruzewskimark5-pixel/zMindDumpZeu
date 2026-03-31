@@ -1,6 +1,8 @@
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 import math
 import time
+
+# --- Hardened Competitive OS v0.1: Rivalry Engine ---
 
 def compute_performance_delta(score_a: float, score_b: float) -> float:
     # Direct performance delta D_AB
@@ -12,8 +14,6 @@ def compute_performance_delta(score_a: float, score_b: float) -> float:
 
 def compute_di_weighted_context(shared_holes: List[Dict[str, Any]]) -> float:
     # DI-weighted context DI_AB
-    # sum((score_B(h) - score_A(h)) * DI(h))
-    # Normalize across -10 to +10 band
     weighted_sum = 0
     for hole in shared_holes:
         diff = hole.get("score_b", 0) - hole.get("score_a", 0)
@@ -39,14 +39,36 @@ def compute_event_triggers(events: List[Dict[str, Any]]) -> float:
     e_ab = sum(event.get("weight", 0.0) for event in events)
     return round(min(1.0, e_ab), 4)
 
-def apply_decay(last_updated: int, current_time: int) -> float:
-    # Decay_AB: norm(delta_t)
-    # 30 days = full decay (1.0). 7 days = 0.25.
-    delta_t_sec = current_time - last_updated
+def apply_decay(last_updated: int, current_event_ts: int) -> float:
+    # Decay_AB: norm(delta_t) using event_ts for replay consistency
+    delta_t_sec = current_event_ts - last_updated
     delta_t_days = delta_t_sec / (24 * 3600)
 
     decay_ab = min(1.0, delta_t_days / 30.0)
     return round(decay_ab, 4)
+
+def update_momentum(old_momentum: float, delta_rhi: float, gamma: float = 0.3) -> float:
+    # Exponential Moving Average (EMA) for O(1) momentum tracking
+    new_momentum = (1 - gamma) * old_momentum + gamma * delta_rhi
+    return round(max(-1.0, min(1.0, new_momentum)), 4)
+
+def update_streaming_variance(count: int, mean: float, m2: float, x: float) -> Tuple[int, float, float, float]:
+    # Welford's Algorithm for streaming variance
+    count += 1
+    delta = x - mean
+    mean += delta / count
+    delta2 = x - mean
+    m2 += delta * delta2
+
+    variance = m2 / (count - 1) if count > 1 else 0.0
+    return count, mean, m2, variance
+
+def filter_pair_explosion(score_a: int, score_b: int, current_rhi: float, same_group: bool = True) -> bool:
+    # Pair Explosion Control: Don't process if no meaningful interaction
+    if same_group: return True
+    if abs(score_a - score_b) <= 5: return True
+    if current_rhi > 0.3: return True
+    return False
 
 def update_rhi(
     current_rhi: float,
@@ -55,28 +77,38 @@ def update_rhi(
     id_ab: float,
     e_ab: float,
     decay_ab: float,
+    old_momentum: float,
     weights: Optional[Dict[str, float]] = None
-) -> float:
-    # Base formula: 0.30 D + 0.25 DI + 0.25 ID + 0.20 E - 0.15 Decay
+) -> Tuple[float, float, float]:
+    # Base formula: alpha*D + beta*DI + gamma*ID + delta*E - epsilon*Decay
     if not weights:
         weights = {
             "d": 0.30,
             "di": 0.25,
             "id": 0.25,
             "e": 0.20,
-            "decay": 0.15
+            "decay": 0.15,
+            "alpha": 0.5, # Impact of current event
+            "beta": 0.2   # Impact of momentum
         }
 
-    delta_rhi = (
+    delta_event = (
         weights["d"] * d_ab +
         weights["di"] * di_ab +
         weights["id"] * id_ab +
-        weights["e"] * e_ab -
-        weights["decay"] * decay_ab
+        weights["e"] * e_ab
     )
 
-    new_rhi = max(0.0, min(1.0, current_rhi + delta_rhi))
-    return round(new_rhi, 4)
+    # Nonlinear update with EMA momentum
+    new_momentum = update_momentum(old_momentum, delta_event)
+
+    # Passive decay applied to base
+    rhi_base = current_rhi * (1.0 - (weights["decay"] * decay_ab))
+
+    new_rhi = rhi_base + (weights["alpha"] * delta_event) + (weights["beta"] * new_momentum)
+    new_rhi = max(0.0, min(1.0, new_rhi))
+
+    return round(new_rhi, 4), new_momentum, delta_event
 
 def get_heat_band(rhi: float) -> str:
     if rhi >= 0.81: return "Nuclear"
@@ -84,3 +116,9 @@ def get_heat_band(rhi: float) -> str:
     if rhi >= 0.41: return "Hot"
     if rhi >= 0.21: return "Warm"
     return "Cold"
+
+def compute_priority(rhi: float, momentum: float, confidence: float) -> float:
+    # priority = rhi * momentum * confidence
+    # ensure momentum is shifted to positive for priority if needed, or use abs
+    priority = rhi * (abs(momentum) + 0.1) * confidence
+    return round(priority, 4)
