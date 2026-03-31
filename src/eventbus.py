@@ -46,7 +46,7 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
                 "idempotency_key": idempotency_key,
             }
 
-        fallback_event = logsheetfallback(
+        fallback_event = emitfallback(
             idempotency_key=idempotency_key,
             source=source,
             error="sheet_write_failed",
@@ -63,7 +63,7 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
 
     except Exception as e:
         logger.exception(f"zpulse handler failed: {e}")
-        fallback_event = logsheetfallback(
+        fallback_event = emitfallback(
             idempotency_key=raw_event.get("idempotency_key", "unknown"),
             source=raw_event.get("source", "unknown"),
             error=f"handler_error: {str(e)}",
@@ -133,3 +133,24 @@ def result_to_dict(result: ZPulseResult) -> Dict[str, Any]:
         "badge": result.badge,
         "meta": result.meta,
     }
+
+
+def emitfallback(
+    idempotency_key: str,
+    source: str,
+    error: str,
+    payload: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    # Whitelist approach for error reporting
+    display_error = error
+    if error.startswith("handler_error:"):
+        msg = error.replace("handler_error: ", "")
+        if msg != "Invalid ZPulseInput data":
+            display_error = "handler_error: internal_server_error"
+
+    return logsheetfallback(
+        idempotency_key=idempotency_key,
+        source=source,
+        error=display_error,
+        payload=payload,
+    )
