@@ -1,0 +1,16 @@
+from enum import Enum
+
+class EventType(str, Enum):
+    LEAD_CHANGE = "LEAD_CHANGE"
+    WALK_OFF_WIN = "WALK_OFF_WIN"
+    BLOWN_LEAD = "BLOWN_LEAD"
+    TRASH_TALK = "TRASH_TALK"
+    UPSET = "UPSET"
+    CLUTCH_SAVE = "CLUTCH_SAVE"
+    ROUND_RESULT = "ROUND_RESULT"
+
+class RoundStatus(str, Enum):
+    SCHEDULED = "SCHEDULED"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
