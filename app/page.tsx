@@ -26,7 +26,7 @@ export default function Home() {
 
       window.location.href = url;
     } catch (err) {
-      console.error('Checkout error:', err);
+      console.error('Checkout error:', err instanceof Error ? err.message : err);
       setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);

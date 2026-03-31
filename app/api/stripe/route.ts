@@ -40,7 +40,7 @@ export async function POST() {
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
-    console.error('[Stripe] Checkout error:', error);
+    console.error('[Stripe] Checkout error:', error instanceof Error ? error.message : error);
     return NextResponse.json({ error: 'Checkout failed' }, { status: 500 });
   }
 }
