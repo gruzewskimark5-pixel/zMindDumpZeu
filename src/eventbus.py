@@ -22,11 +22,12 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
         }
 
     try:
+        now = safe_now()
         idempotency_key = raw_event.get("idempotency_key", "unknown")
         source = raw_event.get("source", "unknown")
         payload = raw_event.get("payload", {})
 
-        input_data = parse_zpulse_input(payload)
+        input_data = parse_zpulse_input(payload, now_ts=now)
         if not input_data:
             raise ValueError("Invalid ZPulseInput data")
 
@@ -36,6 +37,7 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
             idempotency_key=idempotency_key,
             source=source,
             result=result,
+            now_ts=now,
         )
 
         if success:
@@ -54,6 +56,7 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
                 "zpulse_result": result_to_dict(result),
                 "raw_payload": payload,
             },
+            now_ts=now,
         )
         return {
             "status": "fallback_emitted",
@@ -68,6 +71,7 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
             source=raw_event.get("source", "unknown"),
             error=f"handler_error: {str(e)}",
             payload=raw_event.get("payload"),
+            now_ts=now if 'now' in locals() else None,
         )
         return {
             "status": "error_fallback",
@@ -75,7 +79,10 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
         }
 
 
-def parse_zpulse_input(payload: Dict[str, Any]) -> Optional[ZPulseInput]:
+def parse_zpulse_input(
+    payload: Dict[str, Any],
+    now_ts: Optional[datetime] = None,
+) -> Optional[ZPulseInput]:
     try:
         # Handle inconsistent keys from potential upstream or test data
         last_update = payload.get("last_update_ts") or payload.get("lastupdatets")
@@ -86,7 +93,7 @@ def parse_zpulse_input(payload: Dict[str, Any]) -> Optional[ZPulseInput]:
             detect_ts=parse_iso(payload["detect_ts"]),
             execute_ts=parse_iso(payload["execute_ts"]),
             last_update_ts=parse_iso(last_update),
-            now_ts=None,
+            now_ts=now_ts,
             max_latency_ms=float(payload.get("max_latency_ms", 5000)),
             max_freshness_sec=float(payload.get("max_freshness_sec", 3600)),
         )
@@ -101,10 +108,15 @@ def parse_iso(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 
-def write_to_sheet(idempotency_key: str, source: str, result: ZPulseResult) -> bool:
+def write_to_sheet(
+    idempotency_key: str,
+    source: str,
+    result: ZPulseResult,
+    now_ts: Optional[datetime] = None,
+) -> bool:
     try:
         row = [
-            safe_now().isoformat(),
+            (now_ts or safe_now()).isoformat(),
             idempotency_key,
             source,
             result.zpulse,
