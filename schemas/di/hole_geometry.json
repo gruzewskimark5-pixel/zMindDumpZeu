@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Hole Geometry",
+  "type": "object",
+  "properties": {
+    "hole_id": { "type": "string" },
+    "par": { "type": "integer" },
+    "distance_yards": { "type": "integer" },
+    "landing_zones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lz_id": { "type": "integer" },
+          "distance": { "type": "integer" },
+          "fairway_width": { "type": "integer" },
+          "hazard_proximity": {
+            "type": "object",
+            "properties": {
+              "left": { "type": "integer" },
+              "right": { "type": "integer" },
+              "carry": { "type": "integer" }
+            }
+          },
+          "hazard_types": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "dogleg_angle_deg": { "type": "integer" },
+    "forced_carry_yards": { "type": "integer" },
+    "hazard_density": { "type": "number" }
+  },
+  "required": ["hole_id", "par", "distance_yards"]
+}

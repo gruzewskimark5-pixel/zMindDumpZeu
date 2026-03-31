@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DI Output",
+  "type": "object",
+  "properties": {
+    "hole_id": { "type": "string" },
+    "G": { "type": "number" },
+    "R": { "type": "number" },
+    "V": { "type": "number" },
+    "P": { "type": "number" },
+    "DI": { "type": "number" },
+    "confidence": { "type": "number" },
+    "classification": { "type": "string" }
+  }
+}

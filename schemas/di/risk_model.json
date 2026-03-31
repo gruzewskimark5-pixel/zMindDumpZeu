@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Risk Model",
+  "type": "object",
+  "properties": {
+    "hole_id": { "type": "string" },
+    "aggressive_line": {
+      "type": "object",
+      "properties": {
+        "target_lz": { "type": "integer" },
+        "hazard_prob": { "type": "number" },
+        "hazard_penalty": { "type": "number" }
+      }
+    },
+    "conservative_line": {
+      "type": "object",
+      "properties": {
+        "target_lz": { "type": "integer" },
+        "hazard_prob": { "type": "number" },
+        "hazard_penalty": { "type": "number" }
+      }
+    }
+  }
+}

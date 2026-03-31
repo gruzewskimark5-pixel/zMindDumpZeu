@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Outcome Variance",
+  "type": "object",
+  "properties": {
+    "hole_id": { "type": "string" },
+    "sample_size": { "type": "integer" },
+    "score_distribution": { "type": "array", "items": { "type": "integer" } },
+    "std_dev": { "type": "number" },
+    "variance_fluctuation": { "type": "number" }
+  }
+}
