@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
+let stripe: Stripe | null = null;
+
 export async function POST() {
   const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
   const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID;
@@ -21,10 +23,14 @@ export async function POST() {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 
-  const stripe = new Stripe(STRIPE_SECRET_KEY);
+  if (!stripe) {
+    stripe = new Stripe(STRIPE_SECRET_KEY);
+  }
+
+  const stripeClient = stripe;
 
   try {
-    const session = await stripe.checkout.sessions.create({
+    const session = await stripeClient.checkout.sessions.create({
       mode: 'subscription',
       line_items: [{
         price: STRIPE_PRICE_ID,
