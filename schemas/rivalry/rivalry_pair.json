@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Rivalry Pair",
+  "type": "object",
+  "properties": {
+    "player_a_id": { "type": "string", "format": "uuid" },
+    "player_b_id": { "type": "string", "format": "uuid" },
+    "rhi": { "type": "number", "minimum": 0, "maximum": 1 },
+    "last_updated": { "type": "integer" },
+    "history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "timestamp": { "type": "integer" },
+          "delta": { "type": "number" },
+          "reason": { "type": "string" }
+        }
+      },
+      "maxItems": 20
+    }
+  },
+  "required": ["player_a_id", "player_b_id", "rhi"]
+}
