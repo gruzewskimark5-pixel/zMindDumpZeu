@@ -63,10 +63,16 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
 
     except Exception as e:
         logger.exception(f"zpulse handler failed: {e}")
+
+        # Mask sensitive error details for external logs
+        error_type = "handler_error: internal_server_error"
+        if str(e) == "Invalid ZPulseInput data":
+            error_type = f"handler_error: {str(e)}"
+
         fallback_event = logsheetfallback(
             idempotency_key=raw_event.get("idempotency_key", "unknown"),
             source=raw_event.get("source", "unknown"),
-            error=f"handler_error: {str(e)}",
+            error=error_type,
             payload=raw_event.get("payload"),
         )
         return {
