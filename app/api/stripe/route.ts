@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
+
 export async function POST() {
   const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
   const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID;
@@ -20,8 +22,6 @@ export async function POST() {
     console.error('[Stripe] Checkout error: NEXT_PUBLIC_URL is not defined');
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-
-  const stripe = new Stripe(STRIPE_SECRET_KEY);
 
   try {
     const session = await stripe.checkout.sessions.create({
