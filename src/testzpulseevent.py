@@ -1,3 +1,4 @@
+from unittest.mock import patch
 from eventbus import handle_zpulse_event, parse_zpulse_input
 
 def testzpulseevent_basic():
@@ -71,7 +72,32 @@ def test_handle_zpulse_event_with_invalid_payload():
     assert result["event"]["error_type"] == "handler_error: Invalid ZPulseInput data"
     print("test_handle_zpulse_event_with_invalid_payload passed!")
 
+def test_handle_zpulse_event_sheet_failure():
+    print("Running test_handle_zpulse_event_sheet_failure...")
+    event = {
+        "event_type": "zpulse_compute",
+        "idempotency_key": "test-sheet-fail",
+        "source": "trading_detector",
+        "payload": {
+            "uptime_pct": 99.5,
+            "signal_score": 92.1,
+            "detect_ts": "2026-02-23T05:27:55Z",
+            "execute_ts": "2026-02-23T05:27:56Z",
+            "lastupdatets": "2026-02-23T05:27:54Z",
+        },
+    }
+
+    with patch("eventbus.write_to_sheet", return_value=False):
+        result = handle_zpulse_event(event)
+
+    assert result["status"] == "fallback_emitted"
+    assert result["idempotency_key"] == "test-sheet-fail"
+    assert "event" in result
+    assert result["event"]["error_type"] == "sheet_write_failed"
+    print("test_handle_zpulse_event_sheet_failure passed!")
+
 if __name__ == "__main__":
     testzpulseevent_basic()
     test_parse_zpulse_input_failures()
     test_handle_zpulse_event_with_invalid_payload()
+    test_handle_zpulse_event_sheet_failure()
