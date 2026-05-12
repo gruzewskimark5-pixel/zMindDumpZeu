@@ -1,33 +1,32 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
+let stripe: Stripe | null = null;
 
 export async function POST() {
   const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
   const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID;
   const NEXT_PUBLIC_URL = process.env.NEXT_PUBLIC_URL;
 
-  if (!STRIPE_SECRET_KEY) {
-    console.error('[Stripe] Checkout error: STRIPE_SECRET_KEY is not defined');
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  const required = { STRIPE_SECRET_KEY, STRIPE_PRICE_ID, NEXT_PUBLIC_URL };
+
+  for (const [key, value] of Object.entries(required)) {
+    if (!value) {
+      console.error(`[Stripe] Checkout error: ${key} is not defined`);
+      return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
   }
 
-  if (!STRIPE_PRICE_ID) {
-    console.error('[Stripe] Checkout error: STRIPE_PRICE_ID is not defined');
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  if (!stripe) {
+    stripe = new Stripe(STRIPE_SECRET_KEY!);
   }
-
-  if (!NEXT_PUBLIC_URL) {
-    console.error('[Stripe] Checkout error: NEXT_PUBLIC_URL is not defined');
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
+  const stripeClient = stripe;
 
   try {
-    const session = await stripe.checkout.sessions.create({
+    const session = await stripeClient.checkout.sessions.create({
       mode: 'subscription',
       line_items: [{
-        price: STRIPE_PRICE_ID,
+        price: STRIPE_PRICE_ID!,
         quantity: 1,
       }],
       success_url: `${NEXT_PUBLIC_URL}/success`,
@@ -40,7 +39,8 @@ export async function POST() {
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
-    console.error('[Stripe] Checkout error:', error);
+    const message = error instanceof Error ? error.message : error;
+    console.error('[Stripe] Checkout error:', message);
     return NextResponse.json({ error: 'Checkout failed' }, { status: 500 });
   }
 }
