@@ -3,8 +3,9 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract TeeBoxNFT is ERC721, Ownable {
+contract TeeBoxNFT is ERC721, Ownable, ReentrancyGuard {
     uint256 public constant MAX_SUPPLY = 500;
     uint256 public totalSupply;
     address public treasury;
@@ -15,7 +16,7 @@ contract TeeBoxNFT is ERC721, Ownable {
         treasury = _treasury;
     }
 
-    function mint() public payable {
+    function mint() public payable nonReentrant {
         require(totalSupply < MAX_SUPPLY, "Max supply reached");
         require(msg.value >= mintPrice, "Insufficient funds");
 
@@ -35,7 +36,7 @@ contract TeeBoxNFT is ERC721, Ownable {
         treasury = _treasury;
     }
 
-    function withdraw() external onlyOwner {
+    function withdraw() external onlyOwner nonReentrant {
         uint256 balance = address(this).balance;
         require(balance > 0, "No ETH to withdraw");
         (bool success, ) = treasury.call{value: balance}("");
