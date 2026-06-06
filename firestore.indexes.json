@@ -1,0 +1,105 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "builders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "cohortId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "builders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "recoveryActive", "order": "ASCENDING" },
+        { "fieldPath": "lastDesireZRating", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "chiefAims",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "builderId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "chiefAims",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "builderId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "desireZ",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "builderId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "faithZ",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "builderId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "failureTaxonomy",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "builderId", "order": "ASCENDING" },
+        { "fieldPath": "rootCauseCategory", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "failureTaxonomy",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "builderId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "artifacts",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "builderId", "order": "ASCENDING" },
+        { "fieldPath": "isShipped", "order": "ASCENDING" },
+        { "fieldPath": "shippedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "mastermindSessions",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "cohortId", "order": "ASCENDING" },
+        { "fieldPath": "scheduledDate", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "signals",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "builderId", "order": "ASCENDING" },
+        { "fieldPath": "resolved", "order": "ASCENDING" },
+        { "fieldPath": "firedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "signals",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "signalType", "order": "ASCENDING" },
+        { "fieldPath": "resolved", "order": "ASCENDING" },
+        { "fieldPath": "firedAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
