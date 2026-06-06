@@ -52,12 +52,19 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
       - run: npm install -g @openapi-contrib/json-schema-to-openapi-schema
-      - run: |
+      - name: Convert JSON Schema to OpenAPI
+        run: |
+          shopt -s globstar
           mkdir -p openapi
           for schema in schemas/**/*.json; do
-            base=$(basename "$schema" .json)
-            json-schema-to-openapi-schema convert "$schema" > "openapi/${base}.json"
+            if [ -f "$schema" ]; then
+              base=$(basename "$schema" .json)
+              echo "Converting $schema to openapi/${base}.json"
+              json-schema-to-openapi-schema convert "$schema" > "openapi/${base}.json" || { echo "Conversion failed for $schema"; exit 1; }
+            fi
           done
+          echo "Conversion complete. Generated files:"
+          ls -la openapi/
       - uses: actions/upload-artifact@v4
         with:
           name: openapi-specs
