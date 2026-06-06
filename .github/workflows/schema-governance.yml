@@ -67,8 +67,8 @@ jobs:
         with: { name: openapi-specs, path: openapi }
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
-      - run: npm install -g @stoplight/spectral-cli@${{ env.SPECTRAL_VERSION }}
-      - run: for spec in openapi/*.json; do spectral lint "$spec" --ruleset spectral:oas || exit 1; done
+      - run: npm install -g @stoplight/spectral-cli@${{ env.SPECTRAL_VERSION }} @stoplight/spectral-config-spectral-oas
+      - run: for spec in openapi/*.json; do spectral lint "$spec" --ruleset @stoplight/spectral-config-spectral-oas || exit 1; done
 
   codegen-clients: # ← VECTOR F
     needs: generate-openapi
