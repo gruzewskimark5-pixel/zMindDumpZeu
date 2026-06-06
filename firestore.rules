@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Builder can read/write their own data only
+    match /builders/{builderId} {
+      allow read, write: if request.auth.uid == builderId;
+
+      // Subcollections — append only (no delete)
+      match /{subcollection}/{docId} {
+        allow read: if request.auth.uid == builderId
+                    || isMentorOf(builderId);
+        allow create: if request.auth.uid == builderId;
+        allow update: if request.auth.uid == builderId
+                      && !deletingFields();
+        allow delete: if false;  // Never delete — use archived/status fields
+      }
+    }
+
+    // Cohort — mentors and members can read; only mentor can write
+    match /cohorts/{cohortId} {
+      allow read: if isMember(cohortId) || isMentor(cohortId);
+      allow write: if isMentor(cohortId);
+
+      match /mastermindSessions/{sessionId} {
+        allow read: if isMember(cohortId) || isMentor(cohortId);
+        allow write: if isMentor(cohortId);  // AI writes via admin SDK
+
+        match /builderUpdates/{builderId} {
+          allow read: if isMember(cohortId) || isMentor(cohortId);
+          allow create, update: if request.auth.uid == builderId
+                                || isMentor(cohortId);
+          allow delete: if false;
+        }
+      }
+    }
+
+    // Prompts — read-only for all authenticated users
+    match /prompts/{promptId} {
+      allow read: if request.auth != null;
+      allow write: if false;  // Admin SDK only
+    }
+
+    // Signals — written by Cloud Functions (admin SDK); readable by Builder + Mentor
+    match /signals/{signalId} {
+      allow read: if request.auth.uid == resource.data.builderId
+                  || isMentorOf(resource.data.builderId);
+      allow write: if false;  // Cloud Functions only
+    }
+
+    // Helper functions
+    function isMentorOf(builderId) {
+      return get(/databases/$(database)/documents/builders/$(builderId)).data.mentorId
+             == request.auth.uid;
+    }
+
+    function isMember(cohortId) {
+      return request.auth.uid in
+             get(/databases/$(database)/documents/cohorts/$(cohortId)).data.builderIds;
+    }
+
+    function isMentor(cohortId) {
+      return get(/databases/$(database)/documents/cohorts/$(cohortId)).data.mentorId
+             == request.auth.uid;
+    }
+
+    function deletingFields() {
+      return request.resource.data.keys().hasAny(
+        resource.data.keys().removeAll(request.resource.data.keys())
+      );
+    }
+  }
+}

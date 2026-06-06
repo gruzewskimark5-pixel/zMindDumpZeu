@@ -39,3 +39,4 @@ __pycache__/
 venv/
 .venv/
 google-credentials.json
+functions/node_modules
