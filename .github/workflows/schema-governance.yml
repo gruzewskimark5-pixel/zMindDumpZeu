@@ -79,12 +79,12 @@ jobs:
         with: { name: openapi-specs, path: openapi }
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
-      - name: Install Spectral CLI only
+      - name: Install Spectral CLI
         run: npm install -g @stoplight/spectral-cli@${{ env.SPECTRAL_VERSION }}
-      - name: Lint OpenAPI specs with default rules
+      - name: Lint OpenAPI specs
         run: |
           echo "Files to lint:"
-          ls -la openapi/
+          ls -la openapi/ || echo "No openapi directory"
           
           if [ ! "$(ls -A openapi/*.json 2>/dev/null)" ]; then
             echo "No OpenAPI specs found. Skipping linting."
@@ -111,7 +111,7 @@ jobs:
       - name: Generate TypeScript, Rust & Python clients
         run: |
           echo "Checking OpenAPI specs:"
-          ls -la openapi/
+          ls -la openapi/ || echo "No openapi directory"
           
           if [ ! "$(ls -A openapi/*.json 2>/dev/null)" ]; then
             echo "No OpenAPI specs found. Skipping codegen."
@@ -163,11 +163,21 @@ jobs:
       - name: Build Live Dashboard
         run: |
           cat > docs/dashboard.html << 'EOF'
-          <!DOCTYPE html><html><head><title>ZLeveLZ Doctrine Dashboard</title><style>body{font-family:monospace;background:#0f172a;color:#e2d9c8;padding:40px;}</style></head><body>
-          <h1>❤️‍🔥 ZLeveLZ Schema Governance — Live Status</h1>
-          <p>Latest deploy: ${{ github.sha }} • OpenAPI + Clients ready</p>
-          <ul><li><a href="request.html">Request Envelope</a></li><li><a href="decision.html">Decision Envelope</a></li></ul>
-          </body></html>
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>ZLeveLZ Doctrine Dashboard</title>
+            <style>body{font-family:monospace;background:#0f172a;color:#e2d9c8;padding:40px;}</style>
+          </head>
+          <body>
+            <h1>❤️‍🔥 ZLeveLZ Schema Governance — Live Status</h1>
+            <p>Latest deploy: ${{ github.sha }} • OpenAPI + Clients ready</p>
+            <ul>
+              <li><a href="request.html">Request Envelope</a></li>
+              <li><a href="decision.html">Decision Envelope</a></li>
+            </ul>
+          </body>
+          </html>
           EOF
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
@@ -181,7 +191,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - name: Broadcast deployment notification
+      - name: Log deployment notification
         run: |
           echo "❤️‍🔥 ZLeveLZ Doctrine updated!"
           echo "New OpenAPI + TS/Rust/Python clients live"
@@ -197,6 +207,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
       - name: Extract Version from package.json
         id: version
         run: |
@@ -207,7 +219,12 @@ jobs:
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: "Doctrine Release v${{ steps.version.outputs.version }}"
-          body: "❤️‍🔥 ZLeveLZ Schema Governance Doctrine v${{ steps.version.outputs.version }}\n\n✅ OpenAPI specs validated\n✅ Client code generated (TS/Rust/Python)\n✅ Documentation deployed"
+          body: |
+            ❤️‍🔥 ZLeveLZ Schema Governance Doctrine v${{ steps.version.outputs.version }}
+
+            ✅ OpenAPI specs validated
+            ✅ Client code generated (TypeScript, Rust, Python)
+            ✅ Documentation deployed to GitHub Pages
           draft: false
           prerelease: false
 
@@ -225,7 +242,9 @@ jobs:
           zlevelz_release_created 1
           EOF
       - uses: actions/upload-artifact@v4
-        with: { name: prometheus-metrics, path: metrics.txt }
+        with:
+          name: prometheus-metrics
+          path: metrics.txt
 
   summary:
     needs: [release-and-changelog, broadcast-update]
