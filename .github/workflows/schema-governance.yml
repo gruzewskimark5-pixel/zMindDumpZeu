@@ -180,23 +180,15 @@ jobs:
           </html>
           EOF
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
-          force_orphan: true
-
-  broadcast-update:
-    needs: deploy-openapi-pages
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Log deployment notification
         run: |
-          echo "❤️‍🔥 ZLeveLZ Doctrine updated!"
-          echo "New OpenAPI + TS/Rust/Python clients live"
-          echo "GitHub Pages: https://github.com/${{ github.repository }}/tree/gh-pages"
-          echo "Commit: ${{ github.sha }}"
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git checkout --orphan gh-pages
+          git rm -rf .
+          cp -r docs/* .
+          git add .
+          git commit -m "Deploy: Documentation update ${{ github.sha }}" || true
+          git push -f origin gh-pages
 
   release-and-changelog:
     needs: deploy-openapi-pages
@@ -209,24 +201,22 @@ jobs:
         with: { fetch-depth: 0 }
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
-      - name: Extract Version from package.json
-        id: version
+      - name: Extract Version and Create Release
         run: |
           VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "1.0.0")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: "Doctrine Release v${{ steps.version.outputs.version }}"
-          body: |
-            ❤️‍🔥 ZLeveLZ Schema Governance Doctrine v${{ steps.version.outputs.version }}
-
-            ✅ OpenAPI specs validated
-            ✅ Client code generated (TypeScript, Rust, Python)
-            ✅ Documentation deployed to GitHub Pages
-          draft: false
-          prerelease: false
+          TAG="v${VERSION}"
+          
+          # Check if tag exists
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping release"
+          else
+            # Create tag and release via git
+            git config user.name "GitHub Actions"
+            git config user.email "actions@github.com"
+            git tag "$TAG" -m "❤️‍🔥 ZLeveLZ Schema Governance Doctrine $VERSION"
+            git push origin "$TAG" || true
+            echo "Created release tag: $TAG"
+          fi
 
   prometheus-metrics:
     needs: [bowtie-compliance, spectral-lint, codegen-clients]
@@ -238,7 +228,6 @@ jobs:
           zlevelz_bowtie_failures 0
           zlevelz_spectral_pass 1
           zlevelz_codegen_clients 3
-          zlevelz_broadcast_sent 1
           zlevelz_release_created 1
           EOF
       - uses: actions/upload-artifact@v4
@@ -247,8 +236,8 @@ jobs:
           path: metrics.txt
 
   summary:
-    needs: [release-and-changelog, broadcast-update]
+    needs: [release-and-changelog]
     runs-on: ubuntu-latest
     if: always()
     steps:
-      - run: echo "❤️‍🔥 V7.0 COMPLETE — Codegen, Broadcast, Release, Eternal Doctrine"
+      - run: echo "❤️‍🔥 V7.0 COMPLETE — Codegen, Deploy, Release, Eternal Doctrine"
