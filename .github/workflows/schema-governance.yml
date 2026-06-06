@@ -120,11 +120,11 @@ jobs:
               base=$(basename "$spec" .json)
               echo "Generating clients for $base..."
               echo "  TypeScript..."
-              quicktype -s json-schema "$spec" -o "clients/typescript/${base}.ts" --lang typescript || { echo "TypeScript codegen failed for $spec"; exit 1; }
+              quicktype --src-lang json-schema "$spec" -o "clients/typescript/${base}.ts" --lang typescript || { echo "TypeScript codegen failed for $spec"; exit 1; }
               echo "  Rust..."
-              quicktype -s json-schema "$spec" -o "clients/rust/${base}.rs" --lang rust || { echo "Rust codegen failed for $spec"; exit 1; }
+              quicktype --src-lang json-schema "$spec" -o "clients/rust/${base}.rs" --lang rust || { echo "Rust codegen failed for $spec"; exit 1; }
               echo "  Python..."
-              quicktype -s json-schema "$spec" -o "clients/python/${base}.py" --lang python || { echo "Python codegen failed for $spec"; exit 1; }
+              quicktype --src-lang json-schema "$spec" -o "clients/python/${base}.py" --lang python || { echo "Python codegen failed for $spec"; exit 1; }
             fi
           done
           
