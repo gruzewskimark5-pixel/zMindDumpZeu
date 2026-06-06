@@ -52,7 +52,12 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
       - run: npm install -g @openapi-contrib/json-schema-to-openapi-schema
-      - run: mkdir -p openapi && for schema in schemas/**/*.json; do base=$(basename "$schema" .json); json-schema-to-openapi-schema "$schema" > "openapi/${base}.json"; done
+      - run: |
+          mkdir -p openapi
+          for schema in schemas/**/*.json; do
+            base=$(basename "$schema" .json)
+            json-schema-to-openapi-schema convert "$schema" > "openapi/${base}.json"
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: openapi-specs
