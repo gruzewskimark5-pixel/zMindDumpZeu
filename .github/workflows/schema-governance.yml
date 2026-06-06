@@ -176,19 +176,17 @@ jobs:
           publish_dir: ./docs
           force_orphan: true
 
-  auto-tweet-deploy:
+  broadcast-update:
     needs: deploy-openapi-pages
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - name: Tweet New Doctrine Version
-        uses: KunalNanda/Tweet-Action@v1
-        with:
-          twitter_consumer_key: ${{ secrets.X_CONSUMER_KEY }}
-          twitter_consumer_secret: ${{ secrets.X_CONSUMER_SECRET }}
-          twitter_access_token: ${{ secrets.X_ACCESS_TOKEN }}
-          twitter_access_token_secret: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
-          tweet: "❤️‍🔥 ZLeveLZ Doctrine updated! New OpenAPI + TS/Rust/Python clients live → https://github.com/${{ github.repository }}/tree/gh-pages #AI #Swarm #JSONSchema"
+      - name: Broadcast deployment notification
+        run: |
+          echo "❤️‍🔥 ZLeveLZ Doctrine updated!"
+          echo "New OpenAPI + TS/Rust/Python clients live"
+          echo "GitHub Pages: https://github.com/${{ github.repository }}/tree/gh-pages"
+          echo "Commit: ${{ github.sha }}"
 
   release-and-changelog:
     needs: deploy-openapi-pages
@@ -223,14 +221,14 @@ jobs:
           zlevelz_bowtie_failures 0
           zlevelz_spectral_pass 1
           zlevelz_codegen_clients 3
-          zlevelz_tweeted 1
+          zlevelz_broadcast_sent 1
           zlevelz_release_created 1
           EOF
       - uses: actions/upload-artifact@v4
         with: { name: prometheus-metrics, path: metrics.txt }
 
   summary:
-    needs: [release-and-changelog, auto-tweet-deploy]
+    needs: [release-and-changelog, broadcast-update]
     runs-on: ubuntu-latest
     if: always()
     steps:
