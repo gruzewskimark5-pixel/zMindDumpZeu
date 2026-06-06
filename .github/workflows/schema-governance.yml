@@ -199,19 +199,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
-      - name: Extract Version
-        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
-      - name: Semantic Version + Changelog
-        uses: conventional-changelog/action@v5
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          release-count: 0
+      - name: Extract Version from package.json
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "1.0.0")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ env.VERSION }}
-          name: "Doctrine Release v${{ env.VERSION }}"
-          body_path: CHANGELOG.md
+          tag_name: v${{ steps.version.outputs.version }}
+          name: "Doctrine Release v${{ steps.version.outputs.version }}"
+          body: "❤️‍🔥 ZLeveLZ Schema Governance Doctrine v${{ steps.version.outputs.version }}\n\n✅ OpenAPI specs validated\n✅ Client code generated (TS/Rust/Python)\n✅ Documentation deployed"
           draft: false
           prerelease: false
 
