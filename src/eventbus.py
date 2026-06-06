@@ -14,6 +14,11 @@ from zpulse import (
 logger = logging.getLogger("zPulse")
 
 
+class InvalidZPulseInputError(ValueError):
+    """Custom exception for validation failures to enable performant type-based handling."""
+    pass
+
+
 def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
     if not isinstance(raw_event, dict):
         return {
@@ -21,14 +26,14 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
             "message": "Event must be a dictionary",
         }
 
-    try:
-        idempotency_key = raw_event.get("idempotency_key", "unknown")
-        source = raw_event.get("source", "unknown")
-        payload = raw_event.get("payload", {})
+    idempotency_key = raw_event.get("idempotency_key", "unknown")
+    source = raw_event.get("source", "unknown")
+    payload = raw_event.get("payload", {})
 
+    try:
         input_data = parse_zpulse_input(payload)
         if not input_data:
-            raise ValueError("Invalid ZPulseInput data")
+            raise InvalidZPulseInputError("Invalid ZPulseInput data")
 
         result = compute_zpulse(input_data)
 
@@ -66,14 +71,14 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
 
         # Mask sensitive error details for external logs
         error_type = "handler_error: internal_server_error"
-        if str(e) == "Invalid ZPulseInput data":
+        if isinstance(e, InvalidZPulseInputError):
             error_type = f"handler_error: {str(e)}"
 
         fallback_event = logsheetfallback(
-            idempotency_key=raw_event.get("idempotency_key", "unknown"),
-            source=raw_event.get("source", "unknown"),
+            idempotency_key=idempotency_key,
+            source=source,
             error=error_type,
-            payload=raw_event.get("payload"),
+            payload=payload,
         )
         return {
             "status": "error_fallback",
