@@ -80,7 +80,16 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
       - run: npm install -g @stoplight/spectral-cli@${{ env.SPECTRAL_VERSION }} @stoplight/spectral-config-spectral-oas
-      - run: for spec in openapi/*.json; do spectral lint "$spec" --ruleset @stoplight/spectral-config-spectral-oas || exit 1; done
+      - name: Lint OpenAPI specs
+        run: |
+          echo "Files to lint:"
+          ls -la openapi/
+          for spec in openapi/*.json; do
+            if [ -f "$spec" ]; then
+              echo "Linting $spec..."
+              spectral lint "$spec" --ruleset @stoplight/spectral-config-spectral-oas || exit 1
+            fi
+          done
 
   codegen-clients: # ← VECTOR F
     needs: generate-openapi
@@ -94,13 +103,31 @@ jobs:
       - run: npm install -g quicktype@${{ env.QUICKTYPE_VERSION }}
       - name: Generate TypeScript, Rust & Python clients
         run: |
+          echo "Checking OpenAPI specs:"
+          ls -la openapi/
+          
+          # Check if any files exist
+          if [ ! "$(ls -A openapi/*.json 2>/dev/null)" ]; then
+            echo "No OpenAPI specs found in openapi/ directory"
+            exit 1
+          fi
+          
           mkdir -p clients/{typescript,rust,python}
           for spec in openapi/*.json; do
-            base=$(basename "$spec" .json)
-            quicktype -s json-schema "$spec" -o "clients/typescript/${base}.ts" --lang typescript
-            quicktype -s json-schema "$spec" -o "clients/rust/${base}.rs" --lang rust
-            quicktype -s json-schema "$spec" -o "clients/python/${base}.py" --lang python
+            if [ -f "$spec" ]; then
+              base=$(basename "$spec" .json)
+              echo "Generating clients for $base..."
+              echo "  TypeScript..."
+              quicktype -s json-schema "$spec" -o "clients/typescript/${base}.ts" --lang typescript || { echo "TypeScript codegen failed for $spec"; exit 1; }
+              echo "  Rust..."
+              quicktype -s json-schema "$spec" -o "clients/rust/${base}.rs" --lang rust || { echo "Rust codegen failed for $spec"; exit 1; }
+              echo "  Python..."
+              quicktype -s json-schema "$spec" -o "clients/python/${base}.py" --lang python || { echo "Python codegen failed for $spec"; exit 1; }
+            fi
           done
+          
+          echo "Client generation complete. Generated files:"
+          find clients -type f | head -20
       - name: Upload Generated Clients
         uses: actions/upload-artifact@v4
         with:
@@ -115,18 +142,22 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with: { name: openapi-specs, path: openapi }
-      # Note: openapi-specs artifact is not uploaded in generate-openapi job in the provided snippet.
-      # I should add it to generate-openapi job or else this download will fail.
-      # But the user said "Copy the entire block". I will follow instructions but maybe add the upload step if I can edit freely.
-      # Actually, let's look at `generate-openapi`. It does NOT upload artifacts.
-      # `deploy-openapi-pages` needs `openapi-specs`.
-      # I will add the upload step to `generate-openapi` to make it functional.
       - uses: actions/download-artifact@v4
         with: { name: generated-clients, path: clients }
       - run: npm install -g redoc-cli
-      - run: mkdir -p docs && for spec in openapi/*.json; do name=$(basename "$spec" .json); redoc-cli bundle "$spec" --output "docs/${name}.html"; done
-      - run: cp docs/request.html docs/index.html || true
-      # The cp command might fail if request.html doesn't exist (e.g. if schema is named differently). Added `|| true` just in case for generic setup.
+      - name: Generate documentation
+        run: |
+          mkdir -p docs
+          echo "Generating docs for OpenAPI specs:"
+          ls -la openapi/
+          for spec in openapi/*.json; do
+            if [ -f "$spec" ]; then
+              name=$(basename "$spec" .json)
+              echo "Bundling $spec..."
+              redoc-cli bundle "$spec" --output "docs/${name}.html"
+            fi
+          done
+          cp docs/request.html docs/index.html || true
       - name: Build Live Dashboard
         run: |
           cat > docs/dashboard.html << 'EOF'
