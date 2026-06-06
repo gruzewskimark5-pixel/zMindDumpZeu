@@ -104,7 +104,7 @@ def parse_zpulse_input(payload: Dict[str, Any]) -> Optional[ZPulseInput]:
 def parse_iso(value: str) -> datetime:
     if not value:
         raise ValueError("Empty timestamp")
-    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    return datetime.fromisoformat(value)
 
 
 def write_to_sheet(idempotency_key: str, source: str, result: ZPulseResult) -> bool:
