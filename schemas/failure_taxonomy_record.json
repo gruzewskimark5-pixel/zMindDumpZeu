@@ -1,0 +1,90 @@
+{
+  "title": "FailureTaxonomyRecord",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "builderId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "linkedProjectId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "linkedAimId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "rawDescription": {
+      "type": "string"
+    },
+    "rootCauseCategory": {
+      "type": "string",
+      "enum": [
+        "SKILL_EXECUTION",
+        "STRATEGY_ASSUMPTION",
+        "EXTERNAL",
+        "MINDSET_FAITH"
+      ]
+    },
+    "rootCauseDetail": {
+      "type": "string"
+    },
+    "biasCheckTriggered": {
+      "type": "boolean"
+    },
+    "biasCheckNote": {
+      "type": "string"
+    },
+    "lessonExtracted": {
+      "type": "string"
+    },
+    "actionableInsight": {
+      "type": "string"
+    },
+    "adjustmentProtocol": {
+      "type": "string"
+    },
+    "adjustmentMeasure": {
+      "type": "string"
+    },
+    "recommitmentText": {
+      "type": "string"
+    },
+    "visualizationRating": {
+      "type": "number"
+    },
+    "sessionType": {
+      "type": "string",
+      "enum": [
+        "FULL",
+        "MICRO"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "builderId",
+    "timestamp",
+    "linkedAimId",
+    "rawDescription",
+    "rootCauseCategory",
+    "rootCauseDetail",
+    "biasCheckTriggered",
+    "lessonExtracted",
+    "actionableInsight",
+    "adjustmentProtocol",
+    "adjustmentMeasure",
+    "recommitmentText",
+    "visualizationRating",
+    "sessionType"
+  ],
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

@@ -1,0 +1,113 @@
+{
+  "title": "RecoveryProtocol",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "builderId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "triggeredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolvedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "triggerSignals": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "DESIR\u0415\u0417_DROP",
+          "FAITHZ_STAGNATION",
+          "EXTERNAL_ATTRIBUTION_PATTERN",
+          "CHIEF_AIM_LOW_ENGAGEMENT",
+          "MASTERMIND_LOW_CONTRIBUTION",
+          "ACTIVITY_DROP"
+        ]
+      }
+    },
+    "signalCount": {
+      "type": "integer"
+    },
+    "currentPhase": {
+      "type": "string",
+      "enum": [
+        "TRIGGERED",
+        "AUDIT",
+        "REIGNITION",
+        "ROOT_SURGERY",
+        "MOMENTUM_REBUILD",
+        "REINTEGRATION",
+        "RESOLVED"
+      ]
+    },
+    "phaseCompletions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "phase": {
+            "type": "string"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "phase",
+          "completedAt",
+          "notes"
+        ]
+      }
+    },
+    "aimDecision": {
+      "type": "string",
+      "enum": [
+        "CONSTRAINT_REDUCTION",
+        "CHIEF_AIM_SURGERY",
+        "PENDING"
+      ]
+    },
+    "aimDecisionJustification": {
+      "type": "string"
+    },
+    "constraintReduction": {
+      "type": "string"
+    },
+    "newAimId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "followUpScheduled": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolved": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "id",
+    "builderId",
+    "triggeredAt",
+    "triggerSignals",
+    "signalCount",
+    "currentPhase",
+    "phaseCompletions",
+    "aimDecision",
+    "aimDecisionJustification",
+    "followUpScheduled",
+    "resolved"
+  ],
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

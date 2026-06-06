@@ -1,0 +1,88 @@
+{
+  "title": "ProjectArtifact",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "builderId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "version": {
+      "type": "integer"
+    },
+    "toolUsed": {
+      "type": "string"
+    },
+    "shippedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "shippedTo": {
+      "type": "string"
+    },
+    "feedbackReceived": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string"
+          },
+          "q1_problemUnderstanding": {
+            "type": "string"
+          },
+          "q2_actualSolution": {
+            "type": "string"
+          },
+          "q3_oneChange": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "timestamp",
+          "source",
+          "q1_problemUnderstanding",
+          "q2_actualSolution",
+          "q3_oneChange"
+        ]
+      }
+    },
+    "metrics": {
+      "type": "string"
+    },
+    "linkedAimId": {
+      "type": "string",
+      "format": "uuid"
+    }
+  },
+  "required": [
+    "id",
+    "builderId",
+    "createdAt",
+    "title",
+    "description",
+    "version",
+    "toolUsed",
+    "shippedTo",
+    "feedbackReceived",
+    "linkedAimId"
+  ],
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

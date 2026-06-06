@@ -1,0 +1,57 @@
+{
+  "title": "DesireZEntry",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "builderId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "rawText": {
+      "type": "string"
+    },
+    "intensityRating": {
+      "type": "number"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "linkedAimId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "sessionContext": {
+      "type": "string",
+      "enum": [
+        "MORNING",
+        "EVENING",
+        "ADHOC",
+        "RECOVERY"
+      ]
+    },
+    "triggerPrompt": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "builderId",
+    "timestamp",
+    "rawText",
+    "intensityRating",
+    "tags",
+    "linkedAimId",
+    "sessionContext"
+  ],
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
