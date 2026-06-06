@@ -1,0 +1,59 @@
+{
+  "title": "FaithZEntry",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "builderId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "rawText": {
+      "type": "string"
+    },
+    "evidenceStrength": {
+      "type": "number"
+    },
+    "sourceTags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "linkedAimId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "sessionContext": {
+      "type": "string",
+      "enum": [
+        "MORNING",
+        "EVENING",
+        "ADHOC",
+        "RECOVERY",
+        "MASTERMIND"
+      ]
+    },
+    "isExternalValidation": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "id",
+    "builderId",
+    "timestamp",
+    "rawText",
+    "evidenceStrength",
+    "sourceTags",
+    "linkedAimId",
+    "sessionContext",
+    "isExternalValidation"
+  ],
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

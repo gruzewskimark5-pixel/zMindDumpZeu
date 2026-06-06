@@ -1,0 +1,78 @@
+{
+  "title": "BuilderProfile",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "name": {
+      "type": "string"
+    },
+    "age": {
+      "type": "integer"
+    },
+    "timezone": {
+      "type": "string"
+    },
+    "background": {
+      "type": "string"
+    },
+    "currentEnergyLevel": {
+      "type": "integer",
+      "enum": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    "preferredLearningModalities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "track": {
+      "type": "string",
+      "enum": [
+        "AI_ENTREPRENEURSHIP",
+        "CUSTOM"
+      ]
+    },
+    "cohortId": {
+      "type": "string"
+    },
+    "mentorId": {
+      "type": "string"
+    },
+    "onboardingComplete": {
+      "type": "boolean"
+    },
+    "weekOneShipDate": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "baselineActivityLevel": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "id",
+    "createdAt",
+    "name",
+    "age",
+    "timezone",
+    "background",
+    "currentEnergyLevel",
+    "preferredLearningModalities",
+    "track",
+    "onboardingComplete"
+  ],
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

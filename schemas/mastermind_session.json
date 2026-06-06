@@ -1,0 +1,135 @@
+{
+  "title": "MastermindSession",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "cohortId": {
+      "type": "string"
+    },
+    "scheduledDate": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actualStartTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actualEndTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "humanMentorId": {
+      "type": "string"
+    },
+    "participantIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "truthScore": {
+      "type": "number"
+    },
+    "evidenceDensityScore": {
+      "type": "number"
+    },
+    "rootCauseDepthScore": {
+      "type": "number"
+    },
+    "commitmentSpecificityScore": {
+      "type": "number"
+    },
+    "truthScoreNotes": {
+      "type": "string"
+    },
+    "failureSpotlightBuilderId": {
+      "type": "string"
+    },
+    "mentorIntervention1": {
+      "type": "string"
+    },
+    "mentorIntervention2": {
+      "type": "string"
+    },
+    "aiSynthesisSummary": {
+      "type": "string"
+    },
+    "builderUpdates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "builderId": {
+            "type": "string"
+          },
+          "chiefAimSnapshot": {
+            "type": "string"
+          },
+          "win": {
+            "type": "string"
+          },
+          "goalThisWeek": {
+            "type": "string"
+          },
+          "shipped": {
+            "type": "string"
+          },
+          "keyMetrics": {
+            "type": "string"
+          },
+          "biggestSetback": {
+            "type": "string"
+          },
+          "hotSeatQuestion": {
+            "type": "string"
+          },
+          "groupFeedback": {
+            "type": "string"
+          },
+          "commitmentNext7Days": {
+            "type": "string"
+          },
+          "commitmentIsSpecific": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "builderId",
+          "chiefAimSnapshot",
+          "win",
+          "goalThisWeek",
+          "shipped",
+          "keyMetrics",
+          "biggestSetback",
+          "hotSeatQuestion",
+          "groupFeedback",
+          "commitmentNext7Days",
+          "commitmentIsSpecific"
+        ]
+      }
+    }
+  },
+  "required": [
+    "id",
+    "cohortId",
+    "scheduledDate",
+    "actualStartTime",
+    "actualEndTime",
+    "humanMentorId",
+    "participantIds",
+    "truthScore",
+    "evidenceDensityScore",
+    "rootCauseDepthScore",
+    "commitmentSpecificityScore",
+    "truthScoreNotes",
+    "failureSpotlightBuilderId",
+    "mentorIntervention1",
+    "mentorIntervention2",
+    "aiSynthesisSummary",
+    "builderUpdates"
+  ],
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

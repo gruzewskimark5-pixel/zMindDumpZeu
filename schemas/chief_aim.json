@@ -1,0 +1,71 @@
+{
+  "title": "ChiefAim",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "builderId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "version": {
+      "type": "integer"
+    },
+    "text": {
+      "type": "string"
+    },
+    "shortVersion": {
+      "type": "string"
+    },
+    "targetDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "confidenceScore": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "REVISED",
+        "ACHIEVED",
+        "ARCHIVED"
+      ]
+    },
+    "revisionTrigger": {
+      "type": "string",
+      "enum": [
+        "SURGERY",
+        "ROUTINE",
+        "RECOVERY"
+      ]
+    },
+    "surgeryNotes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "builderId",
+    "createdAt",
+    "updatedAt",
+    "version",
+    "text",
+    "shortVersion",
+    "targetDate",
+    "confidenceScore",
+    "status"
+  ],
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
