@@ -3,7 +3,8 @@ from typing import Dict, Any, Optional
 from datetime import datetime, timezone
 
 
-@dataclass
+# ⚡ Bolt: Adding slots=True reduces memory footprint and speeds up attribute access
+@dataclass(slots=True)
 class ZPulseInput:
     uptime_pct: float
     signal_score: float          # 0–1 in your current semantics
@@ -15,7 +16,8 @@ class ZPulseInput:
     max_freshness_sec: float = 3600
 
 
-@dataclass
+# ⚡ Bolt: Adding slots=True reduces memory footprint and speeds up attribute access
+@dataclass(slots=True)
 class ZPulseResult:
     zpulse: float
     badge: str
