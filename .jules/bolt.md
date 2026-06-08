@@ -1,3 +1,7 @@
 ## 2024-06-25 - Python Exception Handling & Variable Reuse Optimization
 **Learning:** String-based exception matching (`str(e) == "..."`) combined with repeated dictionary lookups (`raw_event.get(...)`) inside exception handlers creates measurable overhead in error-processing paths. In a high-throughput event processing system like zPulse, utilizing `isinstance` for exception matching and initializing/reusing local variables (avoiding redundant `.get()` method calls) slightly improves error-path performance and code maintainability.
 **Action:** Define custom exception classes for anticipated errors to enable fast type-based `isinstance` checks instead of slow string comparisons. Pre-extract values from dictionaries into local variables *before* try blocks if they will be needed in both success and error paths, reducing redundant instructions (LOAD_FAST vs CALL_METHOD).
+
+## 2024-06-25 - Python Dataclass `slots=True` Optimization
+**Learning:** Instantiating large numbers of standard Python dataclasses creates significant memory and instantiation overhead due to per-instance `__dict__` creation. In high-throughput event processing pipelines (like the zPulse backend), using `slots=True` with Python 3.11+ dataclasses prevents dictionary creation, noticeably improving attribute access speeds and reducing memory footprint without changing application logic.
+**Action:** When designing data models for hot-path or high-volume data streams in Python, explicitly define `slots=True` in the `@dataclass` decorator.
