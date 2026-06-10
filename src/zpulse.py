@@ -3,7 +3,9 @@ from typing import Dict, Any, Optional
 from datetime import datetime, timezone
 
 
-@dataclass
+# Optimization: Using slots=True removes the __dict__ attribute, significantly reducing
+# memory footprint and improving attribute access speed for high-throughput processing paths.
+@dataclass(slots=True)
 class ZPulseInput:
     uptime_pct: float
     signal_score: float          # 0–1 in your current semantics
@@ -15,7 +17,8 @@ class ZPulseInput:
     max_freshness_sec: float = 3600
 
 
-@dataclass
+# Optimization: slots=True reduces memory and improves speed for object creation and field access.
+@dataclass(slots=True)
 class ZPulseResult:
     zpulse: float
     badge: str
