@@ -3,6 +3,8 @@ from typing import Dict, Any, Optional
 from datetime import datetime, timezone
 
 
+# Optimization: Using slots=True reduces memory footprint and improves attribute access
+# speeds in Python 3.11+ for these hot-path data models.
 # Optimization: Using slots=True removes the __dict__ attribute, significantly reducing
 # memory footprint and improving attribute access speed for high-throughput processing paths.
 @dataclass(slots=True)
@@ -17,6 +19,8 @@ class ZPulseInput:
     max_freshness_sec: float = 3600
 
 
+# Optimization: Using slots=True reduces memory footprint and improves attribute access
+# speeds in Python 3.11+ for these hot-path data models.
 # Optimization: slots=True reduces memory and improves speed for object creation and field access.
 @dataclass(slots=True)
 class ZPulseResult:
