@@ -114,19 +114,8 @@ def parse_iso(value: str) -> datetime:
 
 def write_to_sheet(idempotency_key: str, source: str, result: ZPulseResult) -> bool:
     try:
-        row = [
-            safe_now().isoformat(),
-            idempotency_key,
-            source,
-            result.zpulse,
-            result.badge,
-            result.uptime_score,
-            result.signal_score,
-            result.latency_score,
-            result.freshness_score,
-            json.dumps(result.meta),
-        ]
-        # sheet.append_row(row)
+        # Optimization: Removed dead row construction logic that unnecessarily serialized JSON
+        # and formatted datetimes, saving CPU cycles per event in the hot path.
         logger.info(f"Sheet write stub: zpulse={result.zpulse} badge={result.badge}")
         return True
     except Exception as e:
