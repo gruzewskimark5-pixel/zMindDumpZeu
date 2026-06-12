@@ -1,6 +1,5 @@
 from typing import Dict, Any, Optional
 from datetime import datetime
-import json
 import logging
 
 from zpulse import (
@@ -8,7 +7,6 @@ from zpulse import (
     ZPulseResult,
     compute_zpulse,
     logsheetfallback,
-    safe_now,
 )
 
 logger = logging.getLogger("zPulse")
@@ -114,19 +112,8 @@ def parse_iso(value: str) -> datetime:
 
 def write_to_sheet(idempotency_key: str, source: str, result: ZPulseResult) -> bool:
     try:
-        row = [
-            safe_now().isoformat(),
-            idempotency_key,
-            source,
-            result.zpulse,
-            result.badge,
-            result.uptime_score,
-            result.signal_score,
-            result.latency_score,
-            result.freshness_score,
-            json.dumps(result.meta),
-        ]
-        # sheet.append_row(row)
+        # Optimization: removed dead row building logic containing json.dumps
+        # and safe_now().isoformat() to improve performance in the hot path.
         logger.info(f"Sheet write stub: zpulse={result.zpulse} badge={result.badge}")
         return True
     except Exception as e:
