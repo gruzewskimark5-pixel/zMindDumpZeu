@@ -1,6 +1,5 @@
 from typing import Dict, Any, Optional
 from datetime import datetime
-import json
 import logging
 
 from zpulse import (
@@ -8,7 +7,6 @@ from zpulse import (
     ZPulseResult,
     compute_zpulse,
     logsheetfallback,
-    safe_now,
 )
 
 logger = logging.getLogger("zPulse")
@@ -102,7 +100,7 @@ def parse_zpulse_input(payload: Dict[str, Any]) -> Optional[ZPulseInput]:
             max_freshness_sec=float(payload.get("max_freshness_sec", 3600)),
         )
     except (KeyError, ValueError, TypeError, AttributeError) as e:
-        logger.warning(f"Failed to parse ZPulseInput: {payload} - {e}")
+        logger.warning(f"Failed to parse ZPulseInput - {e}")
         return None
 
 
@@ -114,19 +112,6 @@ def parse_iso(value: str) -> datetime:
 
 def write_to_sheet(idempotency_key: str, source: str, result: ZPulseResult) -> bool:
     try:
-        row = [
-            safe_now().isoformat(),
-            idempotency_key,
-            source,
-            result.zpulse,
-            result.badge,
-            result.uptime_score,
-            result.signal_score,
-            result.latency_score,
-            result.freshness_score,
-            json.dumps(result.meta),
-        ]
-        # sheet.append_row(row)
         logger.info(f"Sheet write stub: zpulse={result.zpulse} badge={result.badge}")
         return True
     except Exception as e:
