@@ -1,6 +1,5 @@
 from typing import Dict, Any, Optional
 from datetime import datetime
-import json
 import logging
 
 from zpulse import (
@@ -114,18 +113,8 @@ def parse_iso(value: str) -> datetime:
 
 def write_to_sheet(idempotency_key: str, source: str, result: ZPulseResult) -> bool:
     try:
-        row = [
-            safe_now().isoformat(),
-            idempotency_key,
-            source,
-            result.zpulse,
-            result.badge,
-            result.uptime_score,
-            result.signal_score,
-            result.latency_score,
-            result.freshness_score,
-            json.dumps(result.meta),
-        ]
+        # Optimization: removed expensive unused row generation (json.dumps and isoformat)
+        # from hot-path since sheet.append_row is currently stubbed
         # sheet.append_row(row)
         logger.info(f"Sheet write stub: zpulse={result.zpulse} badge={result.badge}")
         return True
