@@ -5,3 +5,7 @@
 ## 2026-02-23 - Python Dataclass Instantiation & Memory Optimization
 **Learning:** For Python data models processed at high volumes (like `ZPulseInput` and `ZPulseResult` in an event-processing pipeline), native `@dataclass` without `slots=True` incurs significant memory overhead (due to the `__dict__` attribute) and slightly slower attribute access. While testing in this codebase, moving from an unslotted to a slotted dataclass reduced object size significantly and improved execution speed by around ~25-30% for instantiation/attribute access.
 **Action:** Always add `slots=True` to Python `@dataclass` definitions that represent pure data models without dynamic attribute assignment needs, especially those created inside high-throughput hot-paths or inner loops.
+
+## 2024-06-25 - Dead Data Formatting in Mocked Functions
+**Learning:** When external calls (like writing to a Google Sheet) are stubbed or commented out during development or due to feature removal, the data formatting (e.g., `json.dumps()`, `datetime.isoformat()`) required to build the payload for that external call is often left behind. This "dead formatting" incurs unnecessary CPU overhead in hot paths without producing any used output.
+**Action:** Always verify that the payloads being constructed in an integration function are actually being sent. If the sending mechanism is mocked or removed, strip out the associated payload construction to optimize execution time.
