@@ -42,26 +42,53 @@ def compute_zpulse(input_data: ZPulseInput) -> ZPulseResult:
 
     # Latency (ms) — clamp negative
     latency_ms = (input_data.execute_ts - input_data.detect_ts).total_seconds() * 1000.0
-    latency_ms = max(0.0, latency_ms)
+    if latency_ms < 0.0:
+        latency_ms = 0.0
 
-    if input_data.max_latency_ms > 0:
-        over = max(0.0, latency_ms - input_data.max_latency_ms)
-        latency_score = max(0.0, 1.0 - (over / input_data.max_latency_ms))
+    max_lat = input_data.max_latency_ms
+    if max_lat > 0:
+        over = latency_ms - max_lat
+        if over < 0.0:
+            over = 0.0
+        latency_score = 1.0 - (over / max_lat)
+        if latency_score < 0.0:
+            latency_score = 0.0
     else:
         latency_score = 1.0 if latency_ms <= 0 else 0.0
 
     # Freshness (sec) — clamp negative
     freshness_sec = (now - input_data.last_update_ts).total_seconds()
-    freshness_sec = max(0.0, freshness_sec)
+    if freshness_sec < 0.0:
+        freshness_sec = 0.0
 
-    if input_data.max_freshness_sec > 0:
-        over = max(0.0, freshness_sec - input_data.max_freshness_sec)
-        freshness_score = max(0.0, 1.0 - (over / input_data.max_freshness_sec))
+    max_fresh = input_data.max_freshness_sec
+    if max_fresh > 0:
+        over = freshness_sec - max_fresh
+        if over < 0.0:
+            over = 0.0
+        freshness_score = 1.0 - (over / max_fresh)
+        if freshness_score < 0.0:
+            freshness_score = 0.0
     else:
         freshness_score = 1.0 if freshness_sec <= 0 else 0.0
 
-    uptime_score = max(0.0, min(1.0, input_data.uptime_pct / 100.0))
-    signal_score = max(0.0, min(1.0, input_data.signal_score))  # 0–1
+    # uptime_score
+    uptime_val = input_data.uptime_pct / 100.0
+    if uptime_val < 0.0:
+        uptime_score = 0.0
+    elif uptime_val > 1.0:
+        uptime_score = 1.0
+    else:
+        uptime_score = uptime_val
+
+    # signal_score
+    signal_val = input_data.signal_score
+    if signal_val < 0.0:
+        signal_score = 0.0
+    elif signal_val > 1.0:
+        signal_score = 1.0
+    else:
+        signal_score = signal_val
 
     zpulse_val = (
         uptime_score * 0.3
