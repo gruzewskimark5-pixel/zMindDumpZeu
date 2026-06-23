@@ -7,6 +7,7 @@ from zpulse import (
     ZPulseResult,
     compute_zpulse,
     logsheetfallback,
+    safe_now,
 )
 
 logger = logging.getLogger("zPulse")
@@ -24,12 +25,15 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
             "message": "Event must be a dictionary",
         }
 
+    now_ts = safe_now()
+    now_iso = now_ts.isoformat()
+
     idempotency_key = raw_event.get("idempotency_key", "unknown")
     source = raw_event.get("source", "unknown")
     payload = raw_event.get("payload", {})
 
     try:
-        input_data = parse_zpulse_input(payload)
+        input_data = parse_zpulse_input(payload, now_ts=now_ts)
         if not input_data:
             raise InvalidZPulseInputError("Invalid ZPulseInput data")
 
@@ -57,6 +61,7 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
                 "zpulse_result": result_to_dict(result),
                 "raw_payload": payload,
             },
+            timestamp_iso=now_iso,
         )
         return {
             "status": "fallback_emitted",
@@ -77,6 +82,7 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
             source=source,
             error=error_type,
             payload=payload,
+            timestamp_iso=now_iso,
         )
         return {
             "status": "error_fallback",
@@ -84,7 +90,7 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
         }
 
 
-def parse_zpulse_input(payload: Dict[str, Any]) -> Optional[ZPulseInput]:
+def parse_zpulse_input(payload: Dict[str, Any], now_ts: Optional[datetime] = None) -> Optional[ZPulseInput]:
     try:
         # Handle inconsistent keys from potential upstream or test data
         last_update = payload.get("last_update_ts") or payload.get("lastupdatets")
@@ -95,7 +101,7 @@ def parse_zpulse_input(payload: Dict[str, Any]) -> Optional[ZPulseInput]:
             detect_ts=parse_iso(payload["detect_ts"]),
             execute_ts=parse_iso(payload["execute_ts"]),
             last_update_ts=parse_iso(last_update),
-            now_ts=None,
+            now_ts=now_ts,
             max_latency_ms=float(payload.get("max_latency_ms", 5000)),
             max_freshness_sec=float(payload.get("max_freshness_sec", 3600)),
         )
