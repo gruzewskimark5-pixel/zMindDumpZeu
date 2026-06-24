@@ -7,6 +7,7 @@ from zpulse import (
     ZPulseResult,
     compute_zpulse,
     logsheetfallback,
+    safe_now,
 )
 
 logger = logging.getLogger("zPulse")
@@ -18,6 +19,9 @@ class InvalidZPulseInputError(ValueError):
 
 
 def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
+    now = safe_now()
+    now_iso = now.isoformat()
+
     if not isinstance(raw_event, dict):
         return {
             "status": "error",
@@ -29,7 +33,7 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
     payload = raw_event.get("payload", {})
 
     try:
-        input_data = parse_zpulse_input(payload)
+        input_data = parse_zpulse_input(payload, now_ts=now)
         if not input_data:
             raise InvalidZPulseInputError("Invalid ZPulseInput data")
 
@@ -57,6 +61,7 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
                 "zpulse_result": result_to_dict(result),
                 "raw_payload": payload,
             },
+            timestamp_iso=now_iso,
         )
         return {
             "status": "fallback_emitted",
@@ -65,18 +70,20 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
         }
 
     except Exception as e:
-        logger.exception(f"zpulse handler failed: {e}")
-
         # Mask sensitive error details for external logs
         error_type = "handler_error: internal_server_error"
         if isinstance(e, InvalidZPulseInputError):
             error_type = f"handler_error: {str(e)}"
+            logger.error(f"zpulse handler validation failed: {e}")
+        else:
+            logger.exception(f"zpulse handler failed: {e}")
 
         fallback_event = logsheetfallback(
             idempotency_key=idempotency_key,
             source=source,
             error=error_type,
             payload=payload,
+            timestamp_iso=now_iso,
         )
         return {
             "status": "error_fallback",
@@ -84,7 +91,7 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
         }
 
 
-def parse_zpulse_input(payload: Dict[str, Any]) -> Optional[ZPulseInput]:
+def parse_zpulse_input(payload: Dict[str, Any], now_ts: Optional[datetime] = None) -> Optional[ZPulseInput]:
     try:
         # Handle inconsistent keys from potential upstream or test data
         last_update = payload.get("last_update_ts") or payload.get("lastupdatets")
@@ -95,7 +102,7 @@ def parse_zpulse_input(payload: Dict[str, Any]) -> Optional[ZPulseInput]:
             detect_ts=parse_iso(payload["detect_ts"]),
             execute_ts=parse_iso(payload["execute_ts"]),
             last_update_ts=parse_iso(last_update),
-            now_ts=None,
+            now_ts=now_ts,
             max_latency_ms=float(payload.get("max_latency_ms", 5000)),
             max_freshness_sec=float(payload.get("max_freshness_sec", 3600)),
         )

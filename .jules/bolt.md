@@ -13,3 +13,7 @@
 ## 2024-06-25 - Python Function Call Overhead in Hot Paths (`max()`/`min()`)
 **Learning:** Using Python's built-in `max()` and `min()` functions inside high-throughput computation paths (e.g., repeatedly clamping values inside loops or stream processors) introduces measurable function call overhead. Explicitly checking bounds using `if`/`else` logic is often significantly faster (up to ~30% faster in some scenarios) because it avoids the function dispatch penalty entirely.
 **Action:** Replace `max()` and `min()` with explicit conditional expressions (`if`/`else` or assignment with bounds checking) in extreme hot-paths or high-throughput scoring loops.
+
+## 2024-05-24 - Timestamp Generation Overhead in Hot Paths
+**Learning:** In high-throughput Python event pipelines, redundant system calls for current time (`datetime.now()`) and string allocation (`isoformat()`) cause measurable CPU overhead. Expected validation exceptions logged with `logger.exception()` further degrade performance by generating unnecessary stack traces.
+**Action:** Capture timestamps once at the pipeline entry point and propagate the variables. Replace `logger.exception()` with `logger.error()` for expected exceptions to avoid expensive traceback serialization.
