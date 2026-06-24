@@ -126,13 +126,14 @@ def logsheetfallback(
     source: str,
     error: str,
     payload: Optional[Dict[str, Any]] = None,
+    timestamp_iso: Optional[str] = None,
 ) -> Dict[str, Any]:
     return {
         "event_type": "zpulse_fallback",
         "idempotency_key": idempotency_key,
         "source": source,
         "error_type": error,
-        "timestamp": safe_now().isoformat(),
+        "timestamp": timestamp_iso or safe_now().isoformat(),
         "payload": payload or {},
         "status": "persisted_locally",
     }
