@@ -64,13 +64,25 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
             "idempotency_key": idempotency_key,
         }
 
+    except InvalidZPulseInputError as e:
+        # Optimization: use logger.warning instead of logger.exception to avoid
+        # expensive traceback generation for expected validation errors.
+        logger.warning(f"zpulse validation failed: {e}")
+        fallback_event = logsheetfallback(
+            idempotency_key=idempotency_key,
+            source=source,
+            error=f"handler_error: {str(e)}",
+            payload=payload,
+        )
+        return {
+            "status": "error_fallback",
+            "event": fallback_event,
+        }
     except Exception as e:
         logger.exception(f"zpulse handler failed: {e}")
 
         # Mask sensitive error details for external logs
         error_type = "handler_error: internal_server_error"
-        if isinstance(e, InvalidZPulseInputError):
-            error_type = f"handler_error: {str(e)}"
 
         fallback_event = logsheetfallback(
             idempotency_key=idempotency_key,

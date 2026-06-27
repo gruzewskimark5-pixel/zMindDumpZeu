@@ -13,3 +13,7 @@
 ## 2024-06-25 - Python Function Call Overhead in Hot Paths (`max()`/`min()`)
 **Learning:** Using Python's built-in `max()` and `min()` functions inside high-throughput computation paths (e.g., repeatedly clamping values inside loops or stream processors) introduces measurable function call overhead. Explicitly checking bounds using `if`/`else` logic is often significantly faster (up to ~30% faster in some scenarios) because it avoids the function dispatch penalty entirely.
 **Action:** Replace `max()` and `min()` with explicit conditional expressions (`if`/`else` or assignment with bounds checking) in extreme hot-paths or high-throughput scoring loops.
+
+## 2024-06-25 - Python Exception Logging Overhead
+**Learning:** Using `logger.exception()` for expected validation errors in high-throughput hot paths causes significant performance degradation due to the expensive stack trace generation.
+**Action:** Catch specific expected exceptions and use standard logging (e.g., `logger.warning()` or `logger.error()`) without tracebacks instead.
