@@ -65,12 +65,15 @@ def handle_zpulse_event(raw_event: Dict[str, Any]) -> Dict[str, Any]:
         }
 
     except Exception as e:
-        logger.exception(f"zpulse handler failed: {e}")
-
         # Mask sensitive error details for external logs
-        error_type = "handler_error: internal_server_error"
         if isinstance(e, InvalidZPulseInputError):
+            # Optimization: Use standard warning instead of expensive logger.exception
+            # for expected validation failures to prevent stack trace generation.
+            logger.warning(f"zpulse handler validation failed: {e}")
             error_type = f"handler_error: {str(e)}"
+        else:
+            logger.exception(f"zpulse handler failed: {e}")
+            error_type = "handler_error: internal_server_error"
 
         fallback_event = logsheetfallback(
             idempotency_key=idempotency_key,
